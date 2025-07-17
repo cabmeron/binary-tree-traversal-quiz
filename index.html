@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Tree Traversal Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .tree-container {
+            width: 100%;
+            height: 450px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 0.75rem;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+        }
+        .links path {
+            fill: none;
+            stroke: #9ca3af;
+            stroke-width: 2px;
+        }
+        .nodes circle {
+            stroke: #4f46e5;
+            stroke-width: 3px;
+            fill: #fff;
+        }
+        .nodes text {
+            font-size: 14px;
+            font-weight: 600;
+            fill: #111827;
+        }
+        .btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .explanation-step {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            background-color: #f3f4f6;
+            border-left: 3px solid #6b7280;
+        }
+        .explanation-step:not(:last-child) {
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Binary Tree Traversal Quiz</h1>
+            <p class="mt-2 text-lg text-gray-600">Master Pre-order, In-order & Post-order</p>
+        </header>
+
+        <div class="bg-white p-6 rounded-xl shadow-lg">
+            <!-- Settings -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label for="algorithm-select" class="block text-sm font-medium text-gray-700 mb-2">Choose a mode:</label>
+                    <select id="algorithm-select" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="pre_order">Pre-order (Root, Left, Right)</option>
+                        <option value="in_order">In-order (Left, Root, Right)</option>
+                        <option value="post_order">Post-order (Left, Right, Root)</option>
+                        <option value="all_orders">All Orders Challenge</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="depth-select" class="block text-sm font-medium text-gray-700 mb-2">Select tree depth:</label>
+                    <select id="depth-select" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="2">2 Levels</option>
+                        <option value="3" selected>3 Levels</option>
+                        <option value="4">4 Levels</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Tree Visualization -->
+            <div id="tree-container" class="tree-container mb-6"></div>
+
+            <!-- Quiz Question -->
+            <div id="question-area" class="text-center mb-6 p-4 bg-indigo-50 rounded-lg">
+                <p id="question-text" class="text-lg font-semibold text-indigo-800"></p>
+            </div>
+            
+            <!-- Answer Input -->
+            <div id="single-answer-container">
+                <input type="text" id="answer-input" placeholder="Enter traversal path (e.g., 10 5 15...)" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            
+            <div id="all-answers-container" class="hidden space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Pre-order:</label>
+                    <input type="text" id="pre-order-input" placeholder="Root, Left, Right" class="mt-1 w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                 <div>
+                    <label class="block text-sm font-medium text-gray-700">In-order:</label>
+                    <input type="text" id="in-order-input" placeholder="Left, Root, Right" class="mt-1 w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                 <div>
+                    <label class="block text-sm font-medium text-gray-700">Post-order:</label>
+                    <input type="text" id="post-order-input" placeholder="Left, Right, Root" class="mt-1 w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex flex-col sm:flex-row gap-2 mt-4">
+                <button id="check-btn" class="btn flex-grow bg-indigo-600 text-white font-bold py-3 px-6 rounded-md hover:bg-indigo-700">Check Answer(s)</button>
+                <button id="next-btn" class="btn flex-grow bg-gray-700 text-white font-bold py-3 px-6 rounded-md hover:bg-gray-800">Next Question</button>
+            </div>
+
+            <!-- Feedback and Explanation -->
+            <div id="feedback-container" class="mt-6 hidden">
+                <div id="feedback-box" class="p-4 rounded-md">
+                    <h3 id="feedback-title" class="font-bold text-lg mb-2"></h3>
+                    <div id="feedback-text"></div>
+                </div>
+                <div id="explanation-container" class="mt-4 bg-white p-4 border border-gray-200 rounded-lg shadow-sm">
+                    <h4 id="explanation-title" class="font-semibold text-gray-800 mb-3 text-lg">Step-by-step Recursive Trace:</h4>
+                    <div id="explanation-steps"></div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="text-center mt-8 text-gray-500 text-sm">
+            <p>Created to make learning tree algorithms intuitive and fun.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const algorithmSelect = document.getElementById('algorithm-select');
+            const depthSelect = document.getElementById('depth-select');
+            const treeContainer = document.getElementById('tree-container');
+            const questionText = document.getElementById('question-text');
+            const checkBtn = document.getElementById('check-btn');
+            const nextBtn = document.getElementById('next-btn');
+            
+            const singleAnswerContainer = document.getElementById('single-answer-container');
+            const answerInput = document.getElementById('answer-input');
+
+            const allAnswersContainer = document.getElementById('all-answers-container');
+            const preOrderInput = document.getElementById('pre-order-input');
+            const inOrderInput = document.getElementById('in-order-input');
+            const postOrderInput = document.getElementById('post-order-input');
+
+            const feedbackContainer = document.getElementById('feedback-container');
+            const feedbackBox = document.getElementById('feedback-box');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackText = document.getElementById('feedback-text');
+            const explanationContainer = document.getElementById('explanation-container');
+            const explanationTitle = document.getElementById('explanation-title');
+            const explanationSteps = document.getElementById('explanation-steps');
+
+            // --- State ---
+            let currentTreeRoot = null;
+            let correctAnswers = {};
+            let explanationLogs = {};
+
+            // --- D3 Setup ---
+            const width = treeContainer.clientWidth || 600;
+            const height = treeContainer.clientHeight || 450;
+            const svg = d3.select(treeContainer).append("svg")
+                .attr("width", "100%")
+                .attr("height", "100%")
+                .attr("viewBox", `0 0 ${width} ${height}`);
+            
+            const g = svg.append("g");
+            
+            svg.call(d3.zoom().scaleExtent([0.5, 2]).on("zoom", (event) => {
+                g.attr("transform", event.transform);
+            }));
+
+            // --- Tree Generation (Revised) ---
+            
+            // Helper function to count the number of nodes in a tree
+            function countNodes(node) {
+                if (!node) return 0;
+                let count = 1;
+                if (node.children) {
+                    node.children.forEach(child => {
+                        count += countNodes(child);
+                    });
+                }
+                return count;
+            }
+
+            // Helper function to check if a tree is "straight" (each node has at most one child)
+            function isStraightTree(node) {
+                if (!node) return true;
+                // If a node has two children, it's not a straight tree.
+                if (node.children && node.children.length === 2) {
+                    return false;
+                }
+                // If it has 0 or 1 child, recurse. The whole structure is straight only if all sub-parts are straight.
+                if (node.children && node.children.length > 0) {
+                    return isStraightTree(node.children[0]);
+                }
+                return true;
+            }
+
+            // Recursively builds a random tree up to a max depth
+            function buildRandomTree(maxDepth, currentDepth = 0) {
+                if (currentDepth >= maxDepth) {
+                    return null;
+                }
+
+                const node = {
+                    name: Math.floor(Math.random() * 100) + 1,
+                    children: []
+                };
+
+                // Logic to decide whether to create children
+                const createChildProb = 1.0 - (currentDepth / (maxDepth * 1.5));
+
+                // Attempt to create left child
+                if (Math.random() < createChildProb) {
+                    const leftChild = buildRandomTree(maxDepth, currentDepth + 1);
+                    if (leftChild) node.children.push(leftChild);
+                }
+
+                // Attempt to create right child
+                if (Math.random() < createChildProb) {
+                    const rightChild = buildRandomTree(maxDepth, currentDepth + 1);
+                    if (rightChild) node.children.push(rightChild);
+                }
+                
+                if (node.children.length === 0) {
+                    delete node.children;
+                }
+
+                return node;
+            }
+            
+            // Main generator function that enforces constraints
+            function generateTreeWithConstraints(maxDepth) {
+                let tree;
+                let attempts = 0;
+                const maxAttempts = 100;
+
+                while (attempts < maxAttempts) {
+                    tree = buildRandomTree(maxDepth);
+                    const nodeCount = countNodes(tree);
+                    
+                    // A tree is "bad" if:
+                    // 1. It has fewer than 4 nodes.
+                    // 2. It's a straight line AND the desired depth is 3 or more.
+                    const isStraight = isStraightTree(tree);
+                    const isBadTree = nodeCount < 4 || (isStraight && maxDepth >= 3);
+
+                    if (!isBadTree) {
+                        return tree; // This tree is good.
+                    }
+                    attempts++;
+                }
+                
+                // Fallback if a suitable random tree isn't found
+                console.warn("Could not generate a random tree meeting constraints. Please try again.");
+                // As a last resort, generate a simple valid tree
+                return {
+                    name: 50,
+                    children: [
+                        { name: 25, children: [{name: 15}] },
+                        { name: 75 }
+                    ]
+                };
+            }
+
+
+            // --- Tree Drawing ---
+            function drawTree(treeData) {
+                g.selectAll("*").remove(); 
+
+                if (!treeData) {
+                    questionText.textContent = "Generated an empty tree, please click Next Question.";
+                    return;
+                };
+
+                const treeLayout = d3.tree().size([width - 80, height - 100]);
+                const root = d3.hierarchy(treeData);
+                treeLayout(root);
+
+                g.attr("transform", `translate(40, 50)`);
+
+                g.append("g")
+                    .attr("class", "links")
+                    .selectAll("path")
+                    .data(root.links())
+                    .enter()
+                    .append("path")
+                    .attr("d", d3.linkVertical().x(d => d.x).y(d => d.y));
+
+                const node = g.append("g")
+                    .attr("class", "nodes")
+                    .selectAll("g")
+                    .data(root.descendants())
+                    .enter()
+                    .append("g")
+                    .attr("transform", d => `translate(${d.x},${d.y})`);
+
+                node.append("circle").attr("r", 20);
+                node.append("text")
+                    .attr("dy", "0.31em")
+                    .attr("text-anchor", "middle")
+                    .text(d => d.data.name);
+            }
+
+            // --- Traversal Algorithms ---
+            function traverse(type, node, path, log, depth = 0) {
+                if (!node) {
+                    if (log) log.push({ text: "-> Reached a null node, returning.", depth });
+                    return;
+                }
+                const indent = "&nbsp;".repeat(depth * 2);
+                const visitAction = () => {
+                    if (log) log.push({ text: `${indent}Visit node <strong>${node.name}</strong>. Add to path.`, depth });
+                    path.push(node.name);
+                };
+                const goLeft = () => {
+                    if (log) log.push({ text: `${indent}Go Left from ${node.name}...`, depth });
+                    traverse(type, node.children?.[0], path, log, depth + 1);
+                };
+                const goRight = () => {
+                    if (log) log.push({ text: `${indent}Go Right from ${node.name}...`, depth });
+                    traverse(type, node.children?.[1], path, log, depth + 1);
+                };
+
+                if (type === 'pre_order') { visitAction(); goLeft(); goRight(); }
+                if (type === 'in_order') { goLeft(); visitAction(); goRight(); }
+                if (type === 'post_order') { goLeft(); goRight(); visitAction(); }
+
+                if (log) log.push({ text: `${indent}Finished with node ${node.name}, returning up.`, depth });
+            }
+
+            // --- Quiz Logic ---
+            function generateQuestion() {
+                // Reset UI
+                [answerInput, preOrderInput, inOrderInput, postOrderInput].forEach(i => i.value = '');
+                [answerInput, preOrderInput, inOrderInput, postOrderInput].forEach(i => i.disabled = false);
+                checkBtn.disabled = false;
+                feedbackContainer.classList.add('hidden');
+
+                // Generate and draw tree
+                const maxDepth = parseInt(depthSelect.value, 10);
+                currentTreeRoot = generateTreeWithConstraints(maxDepth);
+                drawTree(currentTreeRoot);
+                if (!currentTreeRoot) return;
+
+                const selectedAlgorithm = algorithmSelect.value;
+                
+                // Toggle input visibility
+                const isAllOrdersMode = selectedAlgorithm === 'all_orders';
+                singleAnswerContainer.classList.toggle('hidden', isAllOrdersMode);
+                allAnswersContainer.classList.toggle('hidden', !isAllOrdersMode);
+                
+                // Calculate answers and logs
+                correctAnswers = {};
+                explanationLogs = {};
+                
+                if (isAllOrdersMode) {
+                    questionText.textContent = `Perform all three traversals on the tree below.`;
+                    ['pre_order', 'in_order', 'post_order'].forEach(type => {
+                        const path = [];
+                        const log = [];
+                        traverse(type, currentTreeRoot, path, log);
+                        correctAnswers[type] = path;
+                        explanationLogs[type] = log;
+                    });
+                } else {
+                    const path = [];
+                    const log = [];
+                    const algoName = algorithmSelect.options[algorithmSelect.selectedIndex].text;
+                    questionText.textContent = `Perform a ${algoName} on the tree below.`;
+                    traverse(selectedAlgorithm, currentTreeRoot, path, log);
+                    correctAnswers[selectedAlgorithm] = path;
+                    explanationLogs[selectedAlgorithm] = log;
+                }
+            }
+
+            function checkAnswer() {
+                const selectedAlgorithm = algorithmSelect.value;
+                feedbackContainer.classList.remove('hidden');
+                checkBtn.disabled = true;
+
+                if (selectedAlgorithm === 'all_orders') {
+                    checkAllOrders();
+                } else {
+                    checkSingleOrder();
+                }
+                
+                displayExplanation();
+            }
+
+            function checkSingleOrder() {
+                answerInput.disabled = true;
+                const userAnswer = answerInput.value.trim().split(/[\s,]+/).filter(Boolean).map(Number);
+                const correctAnswer = correctAnswers[algorithmSelect.value];
+                const isCorrect = JSON.stringify(userAnswer) === JSON.stringify(correctAnswer);
+
+                if (isCorrect) {
+                    feedbackBox.className = 'p-4 rounded-md bg-green-100 text-green-800';
+                    feedbackTitle.textContent = 'Correct!';
+                    feedbackText.innerHTML = `<p>Well done! The traversal path is indeed: <span class="font-mono">${correctAnswer.join(' ')}</span></p>`;
+                } else {
+                    feedbackBox.className = 'p-4 rounded-md bg-red-100 text-red-800';
+                    feedbackTitle.textContent = 'Not Quite...';
+                    feedbackText.innerHTML = `<p>Your answer: <span class="font-mono">${userAnswer.join(' ')}</span></p><p>Correct answer: <span class="font-mono">${correctAnswer.join(' ')}</span></p>`;
+                }
+            }
+
+            function checkAllOrders() {
+                [preOrderInput, inOrderInput, postOrderInput].forEach(i => i.disabled = true);
+                const userAnswers = {
+                    pre_order: preOrderInput.value.trim().split(/[\s,]+/).filter(Boolean).map(Number),
+                    in_order: inOrderInput.value.trim().split(/[\s,]+/).filter(Boolean).map(Number),
+                    post_order: postOrderInput.value.trim().split(/[\s,]+/).filter(Boolean).map(Number)
+                };
+
+                let allCorrect = true;
+                let feedbackHtml = '<div class="space-y-2">';
+
+                ['pre_order', 'in_order', 'post_order'].forEach(type => {
+                    const isCorrect = JSON.stringify(userAnswers[type]) === JSON.stringify(correctAnswers[type]);
+                    if (!isCorrect) allCorrect = false;
+                    const typeName = type.replace('_', '-').charAt(0).toUpperCase() + type.slice(1).replace('_', '-');
+                    feedbackHtml += `
+                        <div>
+                            <strong class="text-md">${typeName}: ${isCorrect ? '<span class="text-green-600">✔ Correct</span>' : '<span class="text-red-600">✘ Incorrect</span>'}</strong>
+                            ${!isCorrect ? `<br><span class="text-xs">Your answer: <span class="font-mono">${userAnswers[type].join(' ')}</span></span>` : ''}
+                            <br><span class="text-xs">Correct answer: <span class="font-mono">${correctAnswers[type].join(' ')}</span></span>
+                        </div>
+                    `;
+                });
+                feedbackHtml += '</div>';
+                feedbackText.innerHTML = feedbackHtml;
+
+                if (allCorrect) {
+                    feedbackBox.className = 'p-4 rounded-md bg-green-100 text-green-800';
+                    feedbackTitle.textContent = 'Excellent! All traversals are correct!';
+                } else {
+                    feedbackBox.className = 'p-4 rounded-md bg-red-100 text-red-800';
+                    feedbackTitle.textContent = 'Some answers need review.';
+                }
+            }
+
+            function displayExplanation() {
+                explanationContainer.classList.remove('hidden');
+                explanationSteps.innerHTML = '';
+                const selectedAlgorithm = algorithmSelect.value;
+
+                if (selectedAlgorithm === 'all_orders') {
+                    explanationTitle.textContent = "Step-by-step Recursive Traces:";
+                     ['pre_order', 'in_order', 'post_order'].forEach(type => {
+                        const typeName = type.replace('_', '-').charAt(0).toUpperCase() + type.slice(1).replace('_', '-');
+                        const section = document.createElement('div');
+                        section.innerHTML = `<h5 class="font-semibold text-md mt-4 mb-2">${typeName} Trace:</h5>`;
+                        explanationLogs[type].forEach(step => {
+                            const stepDiv = document.createElement('div');
+                            stepDiv.className = 'explanation-step';
+                            stepDiv.innerHTML = step.text;
+                            section.appendChild(stepDiv);
+                        });
+                        explanationSteps.appendChild(section);
+                     });
+                } else {
+                    explanationTitle.textContent = "Step-by-step Recursive Trace:";
+                    explanationLogs[selectedAlgorithm].forEach(step => {
+                        const stepDiv = document.createElement('div');
+                        stepDiv.className = 'explanation-step';
+                        stepDiv.innerHTML = step.text;
+                        explanationSteps.appendChild(stepDiv);
+                    });
+                }
+            }
+
+            // --- Event Listeners ---
+            checkBtn.addEventListener('click', checkAnswer);
+            nextBtn.addEventListener('click', generateQuestion);
+            algorithmSelect.addEventListener('change', generateQuestion);
+            depthSelect.addEventListener('change', generateQuestion);
+            
+            [answerInput, preOrderInput, inOrderInput, postOrderInput].forEach(input => {
+                input.addEventListener('keyup', (e) => {
+                    if (e.key === 'Enter') {
+                        checkAnswer();
+                    }
+                });
+            });
+
+            // --- Initial Load ---
+            generateQuestion();
+        });
+    </script>
+</body>
+</html>
